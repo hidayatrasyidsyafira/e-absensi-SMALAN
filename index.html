@@ -2,141 +2,104 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Absensi Siswa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplikasi Absensi Web</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      background-color: #f2f4f7;
     }
-    h2 {
-      text-align: center;
-    }
-    #result {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    img {
-      width: 150px;
-      height: 180px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 25px;
-      background: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    th, td {
-      padding: 10px;
-      text-align: center;
-      border: 1px solid #ddd;
-    }
-    th {
-      background: #2196f3;
+    header {
+      background-color: #003366;
       color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    tr:nth-child(even) {
-      background: #f9f9f9;
+    header img {
+      height: 50px;
+    }
+    header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    #clock {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    #foto {
+      width: 150px;
+      height: 150px;
+      border-radius: 10px;
+      object-fit: cover;
+      background-color: #ddd;
+    }
+    #nama {
+      font-weight: bold;
+      margin-top: 10px;
+      font-size: 18px;
+    }
+    #info {
+      font-size: 14px;
+      color: #444;
+    }
+    input[type="text"] {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 16px;
+      width: 250px;
+      border: 1px solid #333;
+      border-radius: 4px;
+    }
+    footer {
+      background-color: #003366;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <h2>📋 Absensi Siswa</h2>
+  <header>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Coat_of_arms_of_Indonesia_Garuda_Pancasila.svg/1200px-Coat_of_arms_of_Indonesia_Garuda_Pancasila.svg.png" alt="Logo">
+    <h2>Administrator</h2>
+  </header>
 
-  <input type="text" id="nisn" placeholder="Masukkan NISN" onkeydown="if(event.key==='Enter'){absen();}">
-  <button onclick="absen()">Absen</button>
+  <div class="container">
+    <div id="clock">00:00:00</div>
+    <img id="foto" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Foto Siswa">
+    <div id="nama">Nama Siswa</div>
+    <div id="info">NISN | Kelas</div>
+    <input type="text" id="nisnInput" placeholder="Masukkan NISN">
+  </div>
 
-  <div id="result"></div>
-
-  <h3>5 Absensi Terbaru</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>No</th>
-        <th>Tanggal</th>
-        <th>Waktu</th>
-        <th>NISN</th>
-        <th>Nama</th>
-        <th>Kelas</th>
-        <th>Status</th>
-        <th>Foto</th>
-      </tr>
-    </thead>
-    <tbody id="absensiBody">
-      <tr><td colspan="8">Belum ada data</td></tr>
-    </tbody>
-  </table>
+  <footer>
+    Copy Right @ SMAN 9 Lutra
+  </footer>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/PASTE_ID_EXEC_HERE/exec";
-
-    async function absen() {
-      const nisn = document.getElementById("nisn").value.trim();
-      if (!nisn) return alert("Masukkan NISN dulu!");
-
-      try {
-        let res = await fetch(`${scriptURL}?nisn=${nisn}`);
-        let data = await res.json();
-
-        const resultDiv = document.getElementById("result");
-        if (data.status === "Berhasil Absen" || data.status === "Sudah Absen") {
-          resultDiv.innerHTML = `
-            <p><b>Status:</b> ${data.status}</p>
-            <p><b>NISN:</b> ${data.nisn}</p>
-            <p><b>Nama:</b> ${data.nama}</p>
-            <p><b>Kelas:</b> ${data.kelas}</p>
-            <img src="${data.foto}" alt="Foto Siswa">
-          `;
-          loadAbsensi(); // refresh tabel setelah absen
-        } else {
-          resultDiv.innerHTML = `<p>${data.status}</p>`;
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Terjadi kesalahan saat absen.");
-      }
+    // Jam realtime
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clock').textContent = `${h}.${m}.${s}`;
     }
-
-    async function loadAbsensi() {
-      try {
-        let res = await fetch(`${scriptURL}?action=latest`);
-        let data = await res.json();
-
-        const tbody = document.getElementById("absensiBody");
-        tbody.innerHTML = "";
-
-        if (data.status === "OK" && data.data && data.data.length > 0) {
-          data.data.forEach(row => {
-            let tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${row.no}</td>
-              <td>${row.tanggal}</td>
-              <td>${row.waktu}</td>
-              <td>${row.nisn}</td>
-              <td>${row.nama}</td>
-              <td>${row.kelas}</td>
-              <td>${row.status}</td>
-              <td><img src="${row.foto}" width="50"></td>
-            `;
-            tbody.appendChild(tr);
-          });
-        } else {
-          tbody.innerHTML = `<tr><td colspan="8">Belum ada data</td></tr>`;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    // load daftar absensi saat pertama kali dibuka
-    loadAbsensi();
+    setInterval(updateClock, 1000);
+    updateClock();
   </script>
 </body>
 </html>

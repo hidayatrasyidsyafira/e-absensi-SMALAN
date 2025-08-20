@@ -3,103 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <title>E-Absensi SMAN 9 Lutra</title>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <style>
-    body { font-family: Arial, sans-serif; }
-    .container { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; }
-    .jam { font-size: 24px; font-weight: bold; text-align: center; }
-    .absen-form { text-align: center; }
-    .list-absen { border-left: 2px solid #ddd; padding-left: 10px; }
-    header, footer { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #eee; }
-    footer { text-align: center; justify-content: center; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header, footer {
+      background: #0d6efd;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    footer {
+      justify-content: center;
+    }
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 20px;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    #clock {
+      font-size: 2em;
+      text-align: center;
+      margin-top: 40px;
+    }
+    #student-photo {
+      width: 200px;
+      height: 220px;
+      object-fit: cover;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      display: block;
+      margin: 0 auto 10px;
+    }
+    #absen-list {
+      list-style: none;
+      padding: 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    #absen-list li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 5px;
+      border-bottom: 1px solid #ddd;
+    }
+    #absen-list img {
+      width: 50px;
+      height: 60px;
+      object-fit: cover;
+      margin-right: 10px;
+      border-radius: 5px;
+    }
+    #nisn-input {
+      width: 100%;
+      padding: 8px;
+      font-size: 1em;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <!-- HEADER -->
   <header>
-    <img src="logo_sma.png" alt="Logo SMA" width="80">
-    <span>Administrator</span>
+    <img src="logo_sma.png" alt="Logo SMA" width="60">
+    <div>Administrator</div>
   </header>
 
-  <!-- MAIN CONTENT -->
-  <div class="container">
-    <!-- Kiri: Jam -->
-    <div class="jam" id="jamDigital"></div>
-
-    <!-- Tengah: Form -->
-    <div class="absen-form">
-      <img id="fotoSiswa" src="https://via.placeholder.com/150" width="150"><br>
-      <label id="labelNama">Nama: -</label><br>
-      <label id="labelNisn">NISN: -</label><br>
-      <label id="labelKelas">Kelas: -</label><br><br>
-      <input type="text" id="inputNisn" placeholder="Masukkan NISN" autofocus>
+  <main>
+    <!-- Kolom kiri -->
+    <div class="card">
+      <h3>Jam Digital</h3>
+      <div id="clock"></div>
     </div>
 
-    <!-- Kanan: List Absensi -->
-    <div class="list-absen" id="listAbsen"></div>
-  </div>
+    <!-- Kolom tengah -->
+    <div class="card" style="text-align:center;">
+      <img id="student-photo" src="https://via.placeholder.com/200x220" alt="Foto Siswa">
+      <p><strong>Nama:</strong> <span id="student-name">-</span></p>
+      <p><strong>NISN:</strong> <span id="student-nisn">-</span></p>
+      <p><strong>Kelas:</strong> <span id="student-class">-</span></p>
+      <input type="text" id="nisn-input" placeholder="Masukkan NISN">
+    </div>
 
-  <!-- FOOTER -->
+    <!-- Kolom kanan -->
+    <div class="card">
+      <h3>Daftar Hadir</h3>
+      <ul id="absen-list"></ul>
+    </div>
+  </main>
+
   <footer>
     Copy Right @ SMAN 9 Lutra
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // Jam Digital
-    setInterval(() => {
+    // Jam digital realtime
+    function updateClock() {
       const now = new Date();
-      document.getElementById("jamDigital").textContent =
-        now.toLocaleTimeString("id-ID");
-    }, 1000);
+      document.getElementById('clock').innerText =
+        now.toLocaleTimeString('id-ID', {hour12:false});
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-    const apiUrl = "https://script.google.com/macros/s/AKfycbw59NAlUxXTQXo9Mc6nk--7ZVVEfrRT3A9rVcLYOnM8HDqgp-INc92-OBgyCL4L_5Vk/exec"; // ganti dengan URL Web App
+    // Fokus otomatis ke input NISN
+    document.getElementById('nisn-input').focus();
 
-    const inputNisn = document.getElementById("inputNisn");
-    const fotoSiswa = document.getElementById("fotoSiswa");
-    const labelNama = document.getElementById("labelNama");
-    const labelNisn = document.getElementById("labelNisn");
-    const labelKelas = document.getElementById("labelKelas");
-    const listAbsen = document.getElementById("listAbsen");
+    // Contoh API (ganti dengan Apps Script URL)
+    const apiUrl = "https://script.google.com/macros/s/AKfycbx.../exec";
 
-    inputNisn.addEventListener("keypress", function(e) {
-      if (e.key === "Enter") {
-        const nisn = inputNisn.value.trim();
+    document.getElementById('nisn-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        const nisn = this.value.trim();
         if (!nisn) return;
 
         fetch(apiUrl + "?nisn=" + nisn)
           .then(res => res.json())
           .then(data => {
             if (data.status === "Berhasil Absen") {
-              // Update Tampilan
-              fotoSiswa.src = data.foto || "https://via.placeholder.com/150";
-              labelNama.textContent = "Nama: " + data.nama;
-              labelNisn.textContent = "NISN: " + data.nisn;
-              labelKelas.textContent = "Kelas: " + data.kelas;
-
-              // SweetAlert
               Swal.fire({
-                title: "✅ Absen Berhasil",
-                html: `<b>${data.nama}</b><br>${data.kelas}<br>NISN: ${data.nisn}`,
+                title: "Absensi Berhasil",
+                text: `${data.nama} - ${data.kelas}`,
                 imageUrl: data.foto,
-                imageWidth: 100,
                 timer: 3000,
                 showConfirmButton: false
               });
 
-              // Tambah ke List Kanan
-              const item = document.createElement("div");
-              item.innerHTML = `<img src="${data.foto}" width="40"> ${data.nama}`;
-              listAbsen.prepend(item);
+              document.getElementById('student-photo').src = data.foto;
+              document.getElementById('student-name').innerText = data.nama;
+              document.getElementById('student-nisn').innerText = data.nisn;
+              document.getElementById('student-class').innerText = data.kelas;
 
+              // Tambah ke daftar kanan
+              const li = document.createElement("li");
+              li.innerHTML = `<img src="${data.foto}"><span>${data.nama} (${data.kelas})</span>`;
+              document.getElementById('absen-list').prepend(li);
             } else {
-              Swal.fire("❌ " + data.status, "", "error");
+              Swal.fire("Error", data.status, "error");
             }
-            inputNisn.value = "";
-            inputNisn.focus();
-          })
-          .catch(err => {
-            console.error(err);
-            Swal.fire("⚠️ Gagal koneksi ke server", "", "error");
+            document.getElementById('nisn-input').value = "";
           });
       }
     });

@@ -1,0 +1,44 @@
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetSiswa = ss.getSheetByName("Data_Siswa");
+  var sheetAbsensi = ss.getSheetByName("Absensi");
+
+  var nisn = e.parameter.nisn;
+
+  if (!nisn) {
+    return ContentService.createTextOutput(JSON.stringify({status:"error", message:"NISN kosong"}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // Cari data siswa
+  var data = sheetSiswa.getDataRange().getValues();
+  var siswa = null;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] == nisn) {
+      siswa = {
+        nisn: data[i][0],
+        nama: data[i][1],
+        kelas: data[i][2],
+        foto: data[i][3]
+      };
+      break;
+    }
+  }
+
+  if (!siswa) {
+    return ContentService.createTextOutput(JSON.stringify({status:"notfound"}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // Simpan ke Absensi
+  var tgl = Utilities.formatDate(new Date(), "Asia/Makassar", "dd/MM/yyyy");
+  var jam = Utilities.formatDate(new Date(), "Asia/Makassar", "HH:mm:ss");
+  var no = sheetAbsensi.getLastRow();
+  var status = "Hadir";
+
+  sheetAbsensi.appendRow([no, tgl, jam, siswa.nisn, siswa.nama, siswa.kelas, status]);
+
+  siswa.status = status;
+  return ContentService.createTextOutput(JSON.stringify({status:"ok", data:siswa}))
+    .setMimeType(ContentService.MimeType.JSON);
+}

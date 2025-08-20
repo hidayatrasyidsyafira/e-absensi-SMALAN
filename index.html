@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Aplikasi Absensi SMAN 9 Lutra</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f6f9; }
+    header, footer { background:#003366; color:white; padding:10px; display:flex; justify-content:space-between; align-items:center; }
+    header img { height:50px; }
+    footer { text-align:center; font-size:14px; }
+    main { display:grid; grid-template-columns: 1fr 2fr 1fr; height:calc(100vh - 120px); }
+    .clock { font-size:40px; text-align:center; margin-top:20px; }
+    .form { text-align:center; padding:20px; }
+    .form img { width:200px; height:200px; border-radius:10px; margin-bottom:10px; object-fit:cover; }
+    .form input { font-size:18px; padding:5px; width:60%; text-align:center; }
+    .list { padding:20px; overflow-y:auto; }
+    .siswa { display:flex; align-items:center; background:white; margin-bottom:10px; padding:10px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+    .siswa img { width:50px; height:50px; border-radius:50%; margin-right:10px; object-fit:cover; }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <img src="logo_sma.png" alt="Logo SMA">
+    <h3>Administrator</h3>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <!-- JAM DIGITAL -->
+    <div class="clock" id="clock"></div>
+
+    <!-- FORM ABSENSI -->
+    <div class="form">
+      <img id="foto" src="default.png" alt="Foto Siswa">
+      <div><strong id="nama">Nama Siswa</strong></div>
+      <div><span id="nisn">NISN</span> | <span id="kelas">Kelas</span></div>
+      <br>
+      <input type="text" id="inputNisn" placeholder="Masukkan NISN" autofocus>
+    </div>
+
+    <!-- LIST ABSENSI -->
+    <div class="list" id="listAbsensi"></div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    Copy Right @ SMAN 9 Lutra
+  </footer>
+
+<script>
+  // URL Web App Google Script
+  const scriptURL = "PASTE_URL_WEB_APP_DI_SINI";  // ganti dengan URL Web App
+
+  // Jam Digital
+  function updateClock() {
+    const now = new Date();
+    document.getElementById("clock").innerText =
+      now.toLocaleTimeString('id-ID');
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Event Enter di TextBox
+  const input = document.getElementById("inputNisn");
+  input.addEventListener("keypress", async function(e){
+    if(e.key === "Enter"){
+      const nisn = input.value.trim();
+      if(!nisn) return;
+
+      const res = await fetch(`${scriptURL}?nisn=${nisn}`);
+      const data = await res.json();
+
+      if(data.status === "ok"){
+        document.getElementById("foto").src = data.data.foto || "default.png";
+        document.getElementById("nama").innerText = data.data.nama;
+        document.getElementById("nisn").innerText = data.data.nisn;
+        document.getElementById("kelas").innerText = data.data.kelas;
+
+        // SweetAlert
+        Swal.fire({
+          title: data.data.nama,
+          text: `NISN: ${data.data.nisn} | Kelas: ${data.data.kelas}`,
+          imageUrl: data.data.foto,
+          imageWidth: 150,
+          timer: 3000,
+          showConfirmButton: false
+        });
+
+        // Tambah ke list kanan
+        const div = document.createElement("div");
+        div.className = "siswa";
+        div.innerHTML = `<img src="${data.data.foto}">
+                         <div>${data.data.nama}<br><small>${data.data.kelas}</small></div>`;
+        document.getElementById("listAbsensi").prepend(div);
+
+      } else {
+        Swal.fire("Data tidak ditemukan!", "", "error");
+      }
+      input.value = "";
+      input.focus();
+    }
+  });
+</script>
+</body>
+</html>

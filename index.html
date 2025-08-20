@@ -49,57 +49,62 @@
     Copy Right @ SMAN 9 Lutra
   </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  // URL Web App Google Script
-  const scriptURL = "PASTE_URL_WEB_APP_DI_SINI";
-
-  // Jam Digital
+  // Jam digital realtime
   function updateClock() {
     const now = new Date();
-    document.getElementById("clock").innerText =
-      now.toLocaleTimeString('id-ID');
+    document.getElementById('clock').innerText =
+      now.toLocaleTimeString('id-ID', {hour12:false});
   }
   setInterval(updateClock, 1000);
   updateClock();
 
-  // Event Enter di TextBox
-  const input = document.getElementById("inputNisn");
-  input.addEventListener("keypress", async function(e){
-    if(e.key === "Enter"){
-      const nisn = input.value.trim();
-      if(!nisn) return;
+  // Fokus otomatis ke input NISN
+  document.getElementById('nisn-input').focus();
 
-      const res = await fetch(`${scriptURL}?nisn=${nisn}`);
-      const data = await res.json();
+  // Ganti dengan URL Web App kamu
+  const apiUrl = "https://script.google.com/macros/s/AKfycbzfzS190OdgNiz3PkQyKMba8XewaetAcQHBqT1RSvKCx8SXndcIZcoy-an7Jz56Da8UBw/exec";
 
-      if(data.status === "ok"){
-        document.getElementById("foto").src = data.data.foto;
-        document.getElementById("nama").innerText = data.data.nama;
-        document.getElementById("nisn").innerText = data.data.nisn;
-        document.getElementById("kelas").innerText = data.data.kelas;
+  document.getElementById('nisn-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      const nisn = String(this.value).trim(); // pastikan string
+      if (!nisn) return;
 
-        // SweetAlert
-        Swal.fire({
-          title: data.data.nama,
-          text: `NISN: ${data.data.nisn} | Kelas: ${data.data.kelas}`,
-          imageUrl: data.data.foto,
-          imageWidth: 150,
-          timer: 3000,
-          showConfirmButton: false
+      console.log("🔎 NISN dikirim:", nisn); // Debug cek nisn
+
+      fetch(apiUrl + "?nisn=" + encodeURIComponent(nisn))
+        .then(res => res.json())
+        .then(data => {
+          console.log("📥 Respon dari Apps Script:", data); // Debug cek respon
+
+          if (data.status === "Berhasil Absen") {
+            Swal.fire({
+              title: "Absensi Berhasil",
+              text: `${data.nama} - ${data.kelas}`,
+              imageUrl: data.foto,
+              timer: 3000,
+              showConfirmButton: false
+            });
+
+            document.getElementById('student-photo').src = data.foto;
+            document.getElementById('student-name').innerText = data.nama;
+            document.getElementById('student-nisn').innerText = data.nisn;
+            document.getElementById('student-class').innerText = data.kelas;
+
+            // Tambah ke daftar kanan
+            const li = document.createElement("li");
+            li.innerHTML = `<img src="${data.foto}"><span>${data.nama} (${data.kelas})</span>`;
+            document.getElementById('absen-list').prepend(li);
+          } else {
+            Swal.fire("Error", data.status, "error");
+          }
+          document.getElementById('nisn-input').value = "";
+        })
+        .catch(err => {
+          console.error("❌ Error fetch:", err);
+          Swal.fire("Error", "Gagal menghubungi server!", "error");
         });
-
-        // Tambah ke list kanan
-        const div = document.createElement("div");
-        div.className = "siswa";
-        div.innerHTML = `<img src="${data.data.foto}">
-                         <div>${data.data.nama}<br><small>${data.data.kelas}</small></div>`;
-        document.getElementById("listAbsensi").prepend(div);
-
-      } else {
-        Swal.fire("Data tidak ditemukan!", "", "error");
-      }
-      input.value = "";
-      input.focus();
     }
   });
 </script>

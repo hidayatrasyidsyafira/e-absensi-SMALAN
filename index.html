@@ -2,111 +2,141 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Aplikasi Absensi SMAN 9 Lutra</title>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <title>Absensi Siswa</title>
   <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f6f9; }
-    header, footer { background:#003366; color:white; padding:10px; display:flex; justify-content:space-between; align-items:center; }
-    header img { height:50px; }
-    footer { text-align:center; font-size:14px; }
-    main { display:grid; grid-template-columns: 1fr 2fr 1fr; height:calc(100vh - 120px); }
-    .clock { font-size:40px; text-align:center; margin-top:20px; }
-    .form { text-align:center; padding:20px; }
-    .form img { width:200px; height:200px; border-radius:10px; margin-bottom:10px; }
-    .form input { font-size:18px; padding:5px; width:60%; text-align:center; }
-    .list { padding:20px; overflow-y:auto; }
-    .siswa { display:flex; align-items:center; background:white; margin-bottom:10px; padding:10px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-    .siswa img { width:50px; height:50px; border-radius:50%; margin-right:10px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f4f6f8;
+    }
+    h2 {
+      text-align: center;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    img {
+      width: 150px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    th {
+      background: #2196f3;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
   </style>
 </head>
 <body>
-  <!-- HEADER -->
-  <header>
-    <img src="logo_sma.png" alt="Logo SMA">
-    <h3>Administrator</h3>
-  </header>
+  <h2>📋 Absensi Siswa</h2>
 
-  <!-- MAIN -->
-  <main>
-    <!-- JAM DIGITAL -->
-    <div class="clock" id="clock"></div>
+  <input type="text" id="nisn" placeholder="Masukkan NISN" onkeydown="if(event.key==='Enter'){absen();}">
+  <button onclick="absen()">Absen</button>
 
-    <!-- FORM ABSENSI -->
-    <div class="form">
-      <img id="foto" src="default.png" alt="Foto Siswa">
-      <div><strong id="nama">Nama Siswa</strong></div>
-      <div><span id="nisn">NISN</span> | <span id="kelas">Kelas</span></div>
-      <br>
-      <input type="text" id="inputNisn" placeholder="Masukkan NISN" autofocus>
-    </div>
+  <div id="result"></div>
 
-    <!-- LIST ABSENSI -->
-    <div class="list" id="listAbsensi"></div>
-  </main>
+  <h3>5 Absensi Terbaru</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Tanggal</th>
+        <th>Waktu</th>
+        <th>NISN</th>
+        <th>Nama</th>
+        <th>Kelas</th>
+        <th>Status</th>
+        <th>Foto</th>
+      </tr>
+    </thead>
+    <tbody id="absensiBody">
+      <tr><td colspan="8">Belum ada data</td></tr>
+    </tbody>
+  </table>
 
-  <!-- FOOTER -->
-  <footer>
-    Copy Right @ SMAN 9 Lutra
-  </footer>
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/PASTE_ID_EXEC_HERE/exec";
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-  // Jam digital realtime
-  function updateClock() {
-    const now = new Date();
-    document.getElementById('clock').innerText =
-      now.toLocaleTimeString('id-ID', {hour12:false});
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
+    async function absen() {
+      const nisn = document.getElementById("nisn").value.trim();
+      if (!nisn) return alert("Masukkan NISN dulu!");
 
-  // Fokus otomatis ke input NISN
-  document.getElementById('nisn-input').focus();
+      try {
+        let res = await fetch(`${scriptURL}?nisn=${nisn}`);
+        let data = await res.json();
 
-  // Ganti dengan URL Web App kamu
-  const apiUrl = "https://script.google.com/macros/s/AKfycbzfzS190OdgNiz3PkQyKMba8XewaetAcQHBqT1RSvKCx8SXndcIZcoy-an7Jz56Da8UBw/exec";
-
-  document.getElementById('nisn-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      const nisn = String(this.value).trim(); // pastikan string
-      if (!nisn) return;
-
-      console.log("🔎 NISN dikirim:", nisn); // Debug cek nisn
-
-      fetch(apiUrl + "?nisn=" + encodeURIComponent(nisn))
-        .then(res => res.json())
-        .then(data => {
-          console.log("📥 Respon dari Apps Script:", data); // Debug cek respon
-
-          if (data.status === "Berhasil Absen") {
-            Swal.fire({
-              title: "Absensi Berhasil",
-              text: `${data.nama} - ${data.kelas}`,
-              imageUrl: data.foto,
-              timer: 3000,
-              showConfirmButton: false
-            });
-
-            document.getElementById('student-photo').src = data.foto;
-            document.getElementById('student-name').innerText = data.nama;
-            document.getElementById('student-nisn').innerText = data.nisn;
-            document.getElementById('student-class').innerText = data.kelas;
-
-            // Tambah ke daftar kanan
-            const li = document.createElement("li");
-            li.innerHTML = `<img src="${data.foto}"><span>${data.nama} (${data.kelas})</span>`;
-            document.getElementById('absen-list').prepend(li);
-          } else {
-            Swal.fire("Error", data.status, "error");
-          }
-          document.getElementById('nisn-input').value = "";
-        })
-        .catch(err => {
-          console.error("❌ Error fetch:", err);
-          Swal.fire("Error", "Gagal menghubungi server!", "error");
-        });
+        const resultDiv = document.getElementById("result");
+        if (data.status === "Berhasil Absen" || data.status === "Sudah Absen") {
+          resultDiv.innerHTML = `
+            <p><b>Status:</b> ${data.status}</p>
+            <p><b>NISN:</b> ${data.nisn}</p>
+            <p><b>Nama:</b> ${data.nama}</p>
+            <p><b>Kelas:</b> ${data.kelas}</p>
+            <img src="${data.foto}" alt="Foto Siswa">
+          `;
+          loadAbsensi(); // refresh tabel setelah absen
+        } else {
+          resultDiv.innerHTML = `<p>${data.status}</p>`;
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Terjadi kesalahan saat absen.");
+      }
     }
-  });
-</script>
+
+    async function loadAbsensi() {
+      try {
+        let res = await fetch(`${scriptURL}?action=latest`);
+        let data = await res.json();
+
+        const tbody = document.getElementById("absensiBody");
+        tbody.innerHTML = "";
+
+        if (data.status === "OK" && data.data && data.data.length > 0) {
+          data.data.forEach(row => {
+            let tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${row.no}</td>
+              <td>${row.tanggal}</td>
+              <td>${row.waktu}</td>
+              <td>${row.nisn}</td>
+              <td>${row.nama}</td>
+              <td>${row.kelas}</td>
+              <td>${row.status}</td>
+              <td><img src="${row.foto}" width="50"></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = `<tr><td colspan="8">Belum ada data</td></tr>`;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // load daftar absensi saat pertama kali dibuka
+    loadAbsensi();
+  </script>
 </body>
 </html>
